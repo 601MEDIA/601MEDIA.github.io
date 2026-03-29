@@ -2,12 +2,917 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>601MEDIA Dev Github Page</title>
+  <title>601MEDIA — Developer</title>
+  <meta name="description" content="Developer">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       CSS CUSTOM PROPERTIES
+    ============================================================ */
+    :root {
+      --bg:         #080808;
+      --bg-alt:     #0d0d0d;
+      --bg-card:    #111111;
+      --accent:     #00ff88;
+      --cyan:       #00ffff;
+      --text:       #e0e0e0;
+      --text-dim:   #555;
+      --border:     #1e1e1e;
+      --font-mono:  'JetBrains Mono', monospace;
+      --font-display: 'Syne', sans-serif;
+      --nav-h:      64px;
+      --pad-x:      clamp(24px, 5vw, 64px);
+      --section-py: clamp(80px, 12vw, 140px);
+      --max-w:      1200px;
+      --radius:     4px;
+      --ease:       0.2s ease;
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 15px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* Scanline CRT overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.07) 2px,
+        rgba(0,0,0,0.07) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    img { max-width: 100%; display: block; }
+
+    section { position: relative; }
+
+    /* ============================================================
+       LAYOUT
+    ============================================================ */
+    .container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 var(--pad-x);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ============================================================
+       SCROLL PROGRESS
+    ============================================================ */
+    #scroll-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(to right, var(--accent), var(--cyan));
+      z-index: 9998;
+      transition: width 0.08s linear;
+    }
+
+    /* ============================================================
+       BLINK CURSOR
+    ============================================================ */
+    .blink {
+      display: inline-block;
+      color: var(--accent);
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ============================================================
+       SECTION WATERMARK NUMBERS
+    ============================================================ */
+    .sec-num {
+      position: absolute;
+      right: -10px;
+      top: -10px;
+      font-family: var(--font-display);
+      font-size: clamp(100px, 18vw, 220px);
+      font-weight: 800;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(0,255,136,0.05);
+      line-height: 1;
+      user-select: none;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ============================================================
+       SECTION LABEL  ( >_ label )
+    ============================================================ */
+    .sec-label {
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      color: var(--accent);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .sec-label::after {
+      content: '';
+      flex: 1;
+      max-width: 100px;
+      height: 1px;
+      background: linear-gradient(to right, rgba(0,255,136,0.4), transparent);
+    }
+
+    /* ============================================================
+       FADE-IN ON SCROLL
+    ============================================================ */
+    .fi {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .fi.on {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* Hero items use CSS animation instead (no JS dependency) */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ============================================================
+       NAV
+    ============================================================ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: rgba(8,8,8,0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--pad-x);
+      z-index: 1000;
+    }
+
+    .nav-logo {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+    .nav-logo .dim { color: var(--text-dim); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
+    .nav-links a {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      transition: color var(--ease);
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ============================================================
+       HERO
+    ============================================================ */
+    #hero {
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      padding-top: var(--nav-h);
+      overflow: hidden;
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,136,1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,1) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.018;
+      pointer-events: none;
+    }
+
+    .hero-prompt {
+      display: block;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+      animation: fadeUp 0.5s ease 0.15s both;
+    }
+    .hero-prompt .at { color: var(--accent); }
+
+    h1.hero-name {
+      font-family: var(--font-display);
+      font-size: clamp(52px, 9vw, 118px);
+      font-weight: 800;
+      line-height: 0.93;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      margin-bottom: 28px;
+      display: inline-block;
+      position: relative;
+      animation: fadeUp 0.55s ease 0.3s both;
+    }
+
+    /* Glitch hover */
+    h1.hero-name::before,
+    h1.hero-name::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      opacity: 0;
+    }
+    h1.hero-name:hover::before {
+      animation: glitch-a 0.35s steps(2) forwards;
+      color: var(--cyan);
+      clip-path: polygon(0 15%, 100% 15%, 100% 38%, 0 38%);
+    }
+    h1.hero-name:hover::after {
+      animation: glitch-b 0.35s steps(2) forwards;
+      color: var(--accent);
+      clip-path: polygon(0 58%, 100% 58%, 100% 78%, 0 78%);
+    }
+    @keyframes glitch-a {
+      0%   { opacity:0 }
+      25%  { opacity:.85; transform: translate(-3px,0) }
+      50%  { opacity:0;   transform: translate(3px,0) }
+      75%  { opacity:.75; transform: translate(-2px,0) }
+      100% { opacity:0 }
+    }
+    @keyframes glitch-b {
+      0%   { opacity:0 }
+      30%  { opacity:.7;  transform: translate(3px,0) }
+      55%  { opacity:0;   transform: translate(-3px,0) }
+      80%  { opacity:.65; transform: translate(2px,0) }
+      100% { opacity:0 }
+    }
+
+    .hero-tagline {
+      font-size: clamp(16px, 2.2vw, 22px);
+      color: var(--text-dim);
+      margin-bottom: 48px;
+      min-height: 1.8em;
+      animation: fadeUp 0.55s ease 0.5s both;
+    }
+    #typed { color: var(--cyan); }
+
+    .hero-ctas {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      animation: fadeUp 0.55s ease 0.7s both;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 12px 28px;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all var(--ease);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--accent);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ============================================================
+       ABOUT
+    ============================================================ */
+    #about { padding: var(--section-py) 0; }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+      margin-top: 40px;
+    }
+
+    /* Terminal window */
+    .terminal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .term-bar {
+      background: #161616;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+    .term-title {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+    .term-body {
+      padding: 22px 24px;
+      font-size: 13.5px;
+      line-height: 1.9;
+    }
+    .term-body .p  { color: var(--accent); margin-right: 8px; }
+    .term-body .c  { color: var(--cyan); }
+    .term-body .cm { color: var(--text-dim); }
+    .term-body .out { padding: 10px 0 6px; color: var(--text); }
+    .term-body .arr { color: var(--accent); margin-right: 6px; }
+
+    /* Skills */
+    .skills-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .skill-group-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      font-size: 12px;
+      padding: 5px 11px;
+      border: 1px solid rgba(0,255,136,0.18);
+      border-radius: 2px;
+      color: var(--accent);
+      background: rgba(0,255,136,0.04);
+      transition: all var(--ease);
+      cursor: default;
+    }
+    .tag:hover {
+      background: rgba(0,255,136,0.1);
+      border-color: var(--accent);
+    }
+    .tag.t-cyan {
+      color: var(--cyan);
+      border-color: rgba(0,255,255,0.18);
+      background: rgba(0,255,255,0.04);
+    }
+    .tag.t-cyan:hover {
+      background: rgba(0,255,255,0.1);
+      border-color: var(--cyan);
+    }
+
+    /* ============================================================
+       PROJECTS
+    ============================================================ */
+    #projects { padding: var(--section-py) 0; }
+
+    .sec-heading {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 46px);
+      font-weight: 700;
+      margin-bottom: 44px;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .pcard {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 22px 20px;
+      position: relative;
+      transition: transform var(--ease), border-color var(--ease), box-shadow var(--ease);
+      display: flex;
+      flex-direction: column;
+    }
+    .pcard::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(0,255,136,0.04), transparent 60%);
+      opacity: 0;
+      transition: opacity var(--ease);
+    }
+    .pcard:hover {
+      transform: translateY(-5px);
+      border-color: rgba(0,255,136,0.28);
+      box-shadow: 0 10px 36px rgba(0,255,136,0.07);
+    }
+    .pcard:hover::before { opacity: 1; }
+
+    .pcard-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .pcard-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+    .pcard-link-icon {
+      color: var(--text-dim);
+      transition: color var(--ease);
+      flex-shrink: 0;
+    }
+    .pcard:hover .pcard-link-icon { color: var(--accent); }
+    .pcard-link-icon svg { width: 16px; height: 16px; fill: currentColor; }
+
+    .pcard-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .pcard-name a:hover { text-decoration: underline; }
+
+    .pcard-desc {
+      font-size: 12.5px;
+      color: var(--text-dim);
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 20px;
+    }
+
+    .pcard-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .lang {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .lang-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .pstat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pstat svg { width: 14px; height: 14px; fill: currentColor; }
+
+    /* ============================================================
+       STATS
+    ============================================================ */
+    #stats { padding: var(--section-py) 0; }
+
+    .stats-frame {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .stats-bar {
+      background: #161616;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-bar-title {
+      margin-left: 10px;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+    .stats-body {
+      padding: 40px 32px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .stats-body img {
+      border-radius: 2px;
+      height: auto;
+    }
+
+    /* ============================================================
+       CONTACT
+    ============================================================ */
+    #contact { padding: var(--section-py) 0; }
+
+    .contact-inner { max-width: 600px; }
+
+    .contact-heading {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 6.5vw, 80px);
+      font-weight: 800;
+      line-height: 0.97;
+      margin-bottom: 28px;
+    }
+    .contact-heading .hi { color: var(--accent); }
+
+    .contact-sub {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 40px;
+      max-width: 420px;
+      line-height: 1.8;
+    }
+
+    .email-link {
+      display: inline-block;
+      font-size: clamp(14px, 1.8vw, 19px);
+      color: var(--cyan);
+      border-bottom: 1px solid rgba(0,255,255,0.3);
+      padding-bottom: 3px;
+      margin-bottom: 48px;
+      transition: all var(--ease);
+    }
+    .email-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .socials {
+      display: flex;
+      gap: 12px;
+    }
+    .social-btn {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-dim);
+      transition: all var(--ease);
+    }
+    .social-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0,255,136,0.06);
+    }
+    .social-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 22px var(--pad-x);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+    footer .fa { color: var(--accent); }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 960px) {
+      .projects-grid { grid-template-columns: repeat(2, 1fr); }
+      .about-grid    { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .projects-grid { grid-template-columns: 1fr; }
+      .nav-links     { display: none; }
+      .hero-ctas     { flex-direction: column; align-items: flex-start; }
+      .stats-body    { padding: 24px 16px; }
+      footer         { flex-direction: column; gap: 8px; text-align: center; }
+    }
+  </style>
 </head>
 <body>
-  <h1>601dev Github Page</h1>
+
+  <div id="scroll-progress"></div>
+
+  <!-- ============================================================
+       NAV
+  ============================================================ -->
+  <nav aria-label="Primary navigation">
+    <!-- TODO: Replace @username with your GitHub handle -->
+    <div class="nav-logo"><span class="dim">~/</span>@601MEDIA</div>
+    <div class="nav-right">
+      <ul class="nav-links">
+        <li><a href="#about">&gt;_ about</a></li>
+        <!--<li><a href="#projects">&gt;_ work</a></li>-->
+        <li><a href="#stats">&gt;_ stats</a></li>
+        <li><a href="#contact">&gt;_ contact</a></li>
+      </ul>
+      <span class="blink" aria-hidden="true">▋</span>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <section id="hero" aria-label="Hero">
+    <div class="hero-grid" aria-hidden="true"></div>
+    <div class="container">
+      <!-- TODO: Replace @username with your handle -->
+      <span class="hero-prompt"><span class="at">@601MEDIA</span> ~/projects $</span>
+      <!-- TODO: Replace "Your Name" in both the text content AND the data-text attribute -->
+      <h1 class="hero-name" data-text="Mark Mayo">Mark Mayo</h1>
+      <p class="hero-tagline"><span id="typed"></span><span class="blink" aria-hidden="true">▋</span></p>
+      <div class="hero-ctas">
+        <!-- TODO: Replace PLACEHOLDER with your GitHub username -->
+        <a href="https://github.com/601MEDIA" class="btn btn-primary" target="_blank" rel="noopener noreferrer">View GitHub</a>
+        <a href="#contact" class="btn btn-secondary">Contact</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ABOUT
+  ============================================================ -->
+  <section id="about" aria-label="About">
+    <div class="sec-num" aria-hidden="true">02</div>
+    <div class="container">
+      <div class="sec-label fi">&gt;_ about</div>
+      <div class="about-grid">
+
+        <div class="terminal fi">
+          <div class="term-bar" aria-hidden="true">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+            <span class="term-title">bio.txt</span>
+          </div>
+          <div class="term-body">
+            <p><span class="p">$</span> <span class="c">cat</span> bio.txt</p>
+            <!-- TODO: Replace with your bio -->
+            <div class="out">
+              <p>Hey — I'm a developer currently based in Wilmington, NC, specializing in</p>
+              <p>building web applications, and digital experiences</p>
+              <p>that are fast, accessible, and built to last.</p>
+              <br>
+              <p><span class="cm"># currently building:</span></p>
+              <p><span class="arr">→</span> Open source tools for developers</p>
+              <p><span class="arr">→</span> A SaaS platform for [domain]</p>
+              <p><span class="arr">→</span> Contributing to [community]</p>
+            </div>
+            <p><span class="p">$</span> <span class="blink">▋</span></p>
+          </div>
+        </div>
+
+        <div class="skills-wrap fi">
+          <div>
+            <p class="skill-group-label">// Languages</p>
+            <!-- TODO: Update with your languages -->
+            <div class="tags">
+              <span class="tag">&lt;JavaScript /&gt;</span>
+              <span class="tag">&lt;Python /&gt;</span>
+              <span class="tag">&lt;PHP /&gt;</span>
+              <span class="tag">&lt;SQL /&gt;</span>
+            </div>
+          </div>
+          <div>
+            <p class="skill-group-label">// Frameworks</p>
+            <!-- TODO: Update with your frameworks -->
+            <div class="tags">
+              <span class="tag t-cyan">&lt;React /&gt;</span>
+              <span class="tag t-cyan">&lt;Next.js /&gt;</span>
+              <span class="tag t-cyan">&lt;Node.js /&gt;</span>
+              <span class="tag t-cyan">&lt;WordPress /&gt;</span>
+            </div>
+          </div>
+          <div>
+            <p class="skill-group-label">// Tools &amp; Platforms</p>
+            <!-- TODO: Update with your tools -->
+            <div class="tags">
+              <span class="tag">&lt;Git /&gt;</span>
+              <span class="tag">&lt;Docker /&gt;</span>
+              <span class="tag">&lt;Vercel /&gt;</span>
+              <span class="tag">&lt;Linux /&gt;</span>
+              <span class="tag">&lt;MySQL /&gt;</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PROJECTS
+  ============================================================ -->
+  
+
+  <!-- ============================================================
+       STATS
+  ============================================================ -->
+  <section id="stats" aria-label="GitHub Stats">
+    <div class="sec-num" aria-hidden="true">04</div>
+    <div class="container">
+      <div class="sec-label fi">&gt;_ stats</div>
+      <h2 class="sec-heading fi">GitHub Activity</h2>
+      <div class="stats-frame fi">
+        <div class="stats-bar" aria-hidden="true">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span class="stats-bar-title">github-stats.sh</span>
+        </div>
+        <div class="stats-body">
+          <!-- TODO: Replace PLACEHOLDER with your GitHub username in all three src URLs -->
+          <img
+            src="https://github-readme-stats.vercel.app/api?username=PLACEHOLDER&show_icons=true&theme=transparent&title_color=00ff88&icon_color=00ffff&text_color=e0e0e0&bg_color=00000000&border_color=1e1e1e&count_private=true"
+            alt="GitHub stats for PLACEHOLDER"
+            loading="lazy"
+            width="400"
+          >
+          <img
+            src="https://github-readme-stats.vercel.app/api/top-langs/?username=PLACEHOLDER&layout=compact&theme=transparent&title_color=00ff88&text_color=e0e0e0&bg_color=00000000&border_color=1e1e1e"
+            alt="Top languages for PLACEHOLDER"
+            loading="lazy"
+            width="330"
+          >
+          <img
+            src="https://streak-stats.demolab.com/?user=PLACEHOLDER&theme=transparent&background=00000000&ring=00ff88&fire=00ffff&currStreakLabel=00ff88&sideLabels=e0e0e0&dates=555555&border=1e1e1e"
+            alt="GitHub streak for PLACEHOLDER"
+            loading="lazy"
+            width="400"
+          >
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CONTACT
+  ============================================================ -->
+  <section id="contact" aria-label="Contact">
+    <div class="sec-num" aria-hidden="true">05</div>
+    <div class="container">
+      <div class="sec-label fi">&gt;_ contact</div>
+      <div class="contact-inner">
+        <h2 class="contact-heading fi">Let's build<br><span class="hi">something.</span></h2>
+        <!-- TODO: Update contact blurb -->
+        <p class="contact-sub fi">Open to freelance work, collaboration, and interesting problems. Reach out and let's talk.</p>
+        <!-- TODO: Replace with your email address -->
+        <a href="mailto:601media@gmail.com" class="email-link fi">601media@gmail.com</a>
+        <div class="socials fi">
+          <!-- TODO: Replace PLACEHOLDER with your GitHub username -->
+          <a href="https://github.com/601MEDIA" class="social-btn" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z"/></svg>
+          </a>
+          <!-- TODO: Replace PLACEHOLDER with your X/Twitter handle -->
+          <a href="https://x.com/601media" class="social-btn" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <!-- TODO: Replace PLACEHOLDER with your LinkedIn username -->
+          <a href="https://www.linkedin.com/in/mark-mayo-649abb8/" class="social-btn" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer>
+    <!-- TODO: Replace "Your Name" and @username -->
+    <span>// &copy; 2026 <span class="fa">Mark Mayo</span> &mdash; built with <span class="fa">&lt;code /&gt;</span></span>
+    <span><span class="fa">@username</span> on GitHub</span>
+  </footer>
+
+  <!-- ============================================================
+       JAVASCRIPT
+  ============================================================ -->
+  <script>
+    // ----------------------------------------------------------------
+    // Typing animation
+    // TODO: Customize these taglines with your own
+    // ----------------------------------------------------------------
+    const taglines = [
+      'independent developer.',
+      'open source rangler.',
+      'problem solver.',
+      'builder of AI things.',
+    ]
+
+    let lineIdx = 0
+    let charIdx = 0
+    let deleting = false
+    const typedEl = document.getElementById('typed')
+    const TYPE_MS   = 62
+    const DEL_MS    = 32
+    const HOLD_MS   = 2400
+    const GAP_MS    = 380
+
+    function tick() {
+      const word = taglines[lineIdx]
+      if (!deleting) {
+        typedEl.textContent = word.slice(0, ++charIdx)
+        if (charIdx === word.length) { deleting = true; return setTimeout(tick, HOLD_MS) }
+      } else {
+        typedEl.textContent = word.slice(0, --charIdx)
+        if (charIdx === 0) {
+          deleting = false
+          lineIdx = (lineIdx + 1) % taglines.length
+          return setTimeout(tick, GAP_MS)
+        }
+      }
+      setTimeout(tick, deleting ? DEL_MS : TYPE_MS)
+    }
+
+    window.addEventListener('DOMContentLoaded', () => setTimeout(tick, 900))
+
+    // ----------------------------------------------------------------
+    // Scroll progress bar
+    // ----------------------------------------------------------------
+    const bar = document.getElementById('scroll-progress')
+    window.addEventListener('scroll', () => {
+      const pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight) * 100
+      bar.style.width = Math.min(pct, 100) + '%'
+    }, { passive: true })
+
+    // ----------------------------------------------------------------
+    // Staggered fade-in via IntersectionObserver
+    // ----------------------------------------------------------------
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return
+        const siblings = Array.from(entry.target.parentElement.querySelectorAll('.fi'))
+        const idx = siblings.indexOf(entry.target)
+        entry.target.style.transitionDelay = (idx * 75) + 'ms'
+        entry.target.classList.add('on')
+        io.unobserve(entry.target)
+      })
+    }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' })
+
+    document.querySelectorAll('.fi').forEach(el => io.observe(el))
+  </script>
+
 </body>
 </html>
-  
